@@ -45,9 +45,9 @@ class SRUAbstractResult(metaclass=ABCMeta):
         """
         return False
 
-    @abstractmethod
     def write_extra_response_data(self, writer: SRUXMLStreamWriter) -> None:
-        """Serialize extra response data for this request.
+        """Serialize extra response data for this request. A no-op
+        default implementation is provided for convince.
 
         Args:
             writer: Writer to serialize extra response data
@@ -353,6 +353,7 @@ class SRUSearchResultSet(ABC, SRUAbstractResult):
             `StopIteration`: result set is past all records
         """
 
+    @property
     def has_extra_record_data(self) -> bool:
         """Check, if extra record data should be serialized for the
         current record. The default implementation returns ``False``.

@@ -248,13 +248,175 @@ class SRUXMLStreamWriter(ContentHandler):
     # ----------------------------------------------------
 
     @contextmanager
-    def withElement(self, name, namespace=None, attrs=None):
+    def prefix(self, prefix, uri):
+        self.startPrefixMapping(self, prefix, uri)
+        yield
+        self.endPrefixMapping(prefix)
+
+    @contextmanager
+    def element(self, name, namespace=None, attrs=None):
         self.startElementNS((namespace, name), attrs=attrs)
         yield
         self.endElementNS((namespace, name))
 
+    def elementcontent(self, name, content=None, namespace=None, attrs=None):
+        self.startElementNS((namespace, name), attrs=attrs)
+        self.characters(content)
+        self.endElementNS((namespace, name))
+
     @contextmanager
-    def withRecord(self):
+    def record(self):
+        self.startRecord()
+        yield
+        self.endRecord()
+
+
+# ---------------------------------------------------------------------------
+
+
+def copy_XML_into_writer(writer: ContentHandler, xml: Union[bytes, str]):
+    class XMLCopyHandler(ContentHandler):
+        def __init__(self, writer):
+            super().__init__()
+            self.writer = writer
+
+        def startPrefixMapping(self, prefix, uri):
+            self.writer.startPrefixMapping(prefix, uri)
+
+        def endPrefixMapping(self, prefix):
+            self.writer.endPrefixMapping(prefix)
+
+        def startElementNS(self, name, qname, attrs):
+            self.writer.startElementNS(name, qname, attrs)
+
+        def endElementNS(self, name, qname):
+            self.writer.endElementNS(name, qname)
+
+        def characters(self, content):
+            # if not content or content.isspace():
+            #     return
+            self.writer.characters(content)
+
+    try:
+        tree = etree.fromstring(xml)
+        handler = XMLCopyHandler(writer)
+        saxify(tree, handler)
+    except Exception as ex:
+        raise SAXException("serializing xml failed") from ex
+
+
+class XMLStreamWriterHelper(ContentHandler):
+    def __init__(self, xmlwriter: ContentHandler) -> None:
+        super().__init__()
+        self.xmlwriter = xmlwriter
+
+        # unwrap to avoid uneccessary call chains
+        if (
+            isinstance(self.xmlwriter, XMLStreamWriterHelper)
+            and self.xmlwriter.__class__ == XMLStreamWriterHelper
+        ):
+            self.xmlwriter = self.xmlwriter.xmlwriter
+
+    # ----------------------------------------------------
+    # ContentHandler methods
+
+    def setDocumentLocator(self, locator):
+        self.xmlwriter.setDocumentLocator(locator)
+
+    def startPrefixMapping(self, prefix, uri):
+        self.xmlwriter.startPrefixMapping(prefix, uri)
+
+    def endPrefixMapping(self, prefix):
+        self.xmlwriter.endPrefixMapping(prefix)
+
+    def processingInstruction(self, target, data):
+        self.xmlwriter.processingInstruction(target, data)
+
+    def startDocument(self):
+        self.xmlwriter.startDocument()
+
+    def endDocument(self):
+        self.xmlwriter.endDocument()
+
+    def startElement(self, name, attrs=None):
+        if attrs is None:
+            attrs = dict()
+        self.xmlwriter.startElement(name, attrs)
+
+    def endElement(self, name):
+        self.xmlwriter.endElement(name)
+
+    def startElementNS(self, name, qname=None, attrs=None):
+        if attrs is None:
+            attrs = dict()
+        else:
+            # small helper to set None-namespace for attributes
+            # that did not supply them
+            if not all(isinstance(key, tuple) for key in attrs.keys()):
+                attrs_copy = dict()
+                for key, value in attrs.items():
+                    if not isinstance(key, tuple):
+                        key = (None, key)
+                    attrs_copy[key] = value
+                attrs = attrs_copy
+        self.xmlwriter.startElementNS(name, qname, attrs)
+
+    def endElementNS(self, name, qname=None):
+        self.xmlwriter.endElementNS(name, qname)
+
+    def characters(self, content):
+        self.xmlwriter.characters(content)
+
+    def ignorableWhitespace(self, whitespace):
+        self.xmlwriter.ignorableWhitespace(whitespace)
+
+    def skippedEntity(self, name):
+        self.xmlwriter.skippedEntity(name)
+
+    # ----------------------------------------------------
+
+    def writeXML(self, xml: Union[bytes, str]):
+        copy_XML_into_writer(self, xml)
+
+    def writeXMLdocument(self, xmldoc: ET.Element):
+        try:
+            content = ET.tostring(xmldoc)
+            self.writeXML(content)
+        except SAXException:
+            raise
+        except Exception as ex:
+            raise SAXException("serializing xmldoc failed") from ex
+
+    # ----------------------------------------------------
+    # contextmanagers + SRUXMLStreamWriter methods
+
+    @contextmanager
+    def prefix(self, prefix, uri):
+        self.startPrefixMapping(self, prefix, uri)
+        yield
+        self.endPrefixMapping(prefix)
+
+    @contextmanager
+    def element(self, name, namespace=None, attrs=None):
+        self.startElementNS((namespace, name), attrs=attrs)
+        yield
+        self.endElementNS((namespace, name))
+
+    def elementcontent(self, name, content=None, namespace=None, attrs=None):
+        self.startElementNS((namespace, name), attrs=attrs)
+        self.characters(content)
+        self.endElementNS((namespace, name))
+
+    def startRecord(self):
+        if isinstance(self.xmlwriter, SRUXMLStreamWriter):
+            self.xmlwriter.startRecord()
+
+    def endRecord(self):
+        if isinstance(self.xmlwriter, SRUXMLStreamWriter):
+            self.xmlwriter.endRecord()
+
+    @contextmanager
+    def record(self):
         self.startRecord()
         yield
         self.endRecord()

@@ -61,11 +61,8 @@ class MySRUSearchResultSet(SRUSearchResultSet):
 
     def write_record(self, writer: SRUXMLStreamWriter) -> None:
         self.assert_record_idx()
-        with writer.withElement("record", attrs={"no": str(self.cur_record_idx)}):
+        with writer.element("record", attrs={"no": str(self.cur_record_idx)}):
             writer.characters(self.data[self.cur_record_idx])
-
-    def write_extra_response_data(self, writer: SRUXMLStreamWriter) -> None:
-        pass
 
 
 class MySRUSearchEngine(SRUSearchEngine):

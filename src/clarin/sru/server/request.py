@@ -1038,11 +1038,10 @@ class SRURequestImpl(SRUDiagnosticList, SRURequest):
                 continue
 
             # validate and parse parameters ...
-            if parameter.parameter == SRUParam.RECORD_XML_ESCAPING:
+            if parameter.parameter == ParameterInfo.Parameter.RECORD_XML_ESCAPING:
                 if value == SRUParamValue.RECORD_XML_ESCAPING_XML:
                     self.record_xml_escaping = SRURecordXmlEscaping.XML
                 elif value == SRUParamValue.RECORD_XML_ESCAPING_STRING:
-                    # NOTE: type here in java code --^
                     self.record_xml_escaping = SRURecordXmlEscaping.STRING
                 else:
                     self.add_diagnostic(
@@ -1050,7 +1049,7 @@ class SRURequestImpl(SRUDiagnosticList, SRURequest):
                         message=f"Record XML escaping '{value}' is not supported.",
                     )
 
-            elif parameter.parameter == SRUParam.RECORD_PACKING:
+            elif parameter.parameter == ParameterInfo.Parameter.RECORD_PACKING:
                 if value == SRUParamValue.RECORD_PACKING_PACKED:
                     self.record_packing = SRURecordPacking.PACKED
                 elif value == SRUParamValue.RECORD_PACKING_UNPACKED:
@@ -1061,7 +1060,7 @@ class SRURequestImpl(SRUDiagnosticList, SRURequest):
                         message=f"Record packing '{value}' is not supported.",
                     )
 
-            elif parameter.parameter == SRUParam.RENDER_BY:
+            elif parameter.parameter == ParameterInfo.Parameter.RENDER_BY:
                 if value == SRUParamValue.RENDER_BY_CLIENT:
                     self.renderBy = SRURenderBy.CLIENT
                 elif value == SRUParamValue.RENDER_BY_SERVER:
@@ -1072,7 +1071,7 @@ class SRURequestImpl(SRUDiagnosticList, SRURequest):
                         message=f"Value '{value}' for parameter '{name}' is not supported.",
                     )
 
-            elif parameter.parameter == SRUParam.RECORD_SCHEMA:
+            elif parameter.parameter == ParameterInfo.Parameter.RECORD_SCHEMA:
                 # The parameter recordSchema may contain either schema
                 # identifier or the short name. If available, set to
                 # appropriate schema identifier in the request object.
@@ -1089,31 +1088,31 @@ class SRURequestImpl(SRUDiagnosticList, SRURequest):
                         message=f"Record schema '{value}' is not supported for retrieval.",
                     )
 
-            elif parameter.parameter == SRUParam.START_RECORD:
+            elif parameter.parameter == ParameterInfo.Parameter.START_RECORD:
                 self.start_record = self._parse_number_parameter(name, value, 1)
-            elif parameter.parameter == SRUParam.RESPONSE_POSITION:
+            elif parameter.parameter == ParameterInfo.Parameter.RESPONSE_POSITION:
                 self.response_position = self._parse_number_parameter(name, value, 0)
-            elif parameter.parameter == SRUParam.MAXIMUM_RECORDS:
+            elif parameter.parameter == ParameterInfo.Parameter.MAXIMUM_RECORDS:
                 self.maximum_records = self._parse_number_parameter(name, value, 0)
-            elif parameter.parameter == SRUParam.MAXIMUM_TERMS:
+            elif parameter.parameter == ParameterInfo.Parameter.MAXIMUM_TERMS:
                 self.maximum_terms = self._parse_number_parameter(name, value, 0)
-            elif parameter.parameter == SRUParam.RESULT_SET_TTL:
+            elif parameter.parameter == ParameterInfo.Parameter.RESULT_SET_TTL:
                 self.resultSet_TTL = self._parse_number_parameter(name, value, 0)
 
-            elif parameter.parameter == SRUParam.SCAN_CLAUSE:
+            elif parameter.parameter == ParameterInfo.Parameter.SCAN_CLAUSE:
                 self.scan_clause = self._parse_scan_query_parameter(name, value)
 
-            elif parameter.parameter == SRUParam.RECORD_XPATH:
+            elif parameter.parameter == ParameterInfo.Parameter.RECORD_XPATH:
                 self.record_xpath = value
-            elif parameter.parameter == SRUParam.SORT_KEYS:
+            elif parameter.parameter == ParameterInfo.Parameter.SORT_KEYS:
                 self.sortKeys = value
-            elif parameter.parameter == SRUParam.STYLESHEET:
+            elif parameter.parameter == ParameterInfo.Parameter.STYLESHEET:
                 self.stylesheet = value
 
-            elif parameter.parameter == SRUParam.RESPONSE_TYPE:
+            elif parameter.parameter == ParameterInfo.Parameter.RESPONSE_TYPE:
                 # FIXME: check parameter validity?!
                 self.response_type = value
-            elif parameter.parameter == SRUParam.HTTP_ACCEPT:
+            elif parameter.parameter == ParameterInfo.Parameter.HTTP_ACCEPT:
                 # FIXME: check parameter validity?!
                 self.http_accept = value
 

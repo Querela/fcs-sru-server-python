@@ -153,8 +153,8 @@ def test_default_ns():
 
     writer.startPrefixMapping(None, "http://default.ns")
     writer.startPrefixMapping("ns", "http://name.space")
-    with writer.withElement("root", "http://name.space"):
-        with writer.withElement("test"):
+    with writer.element("root", "http://name.space"):
+        with writer.element("test"):
             writer.characters("content")
 
     content = buf.getvalue()

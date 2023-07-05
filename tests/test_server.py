@@ -173,12 +173,6 @@ def test_server_app_search(server_config_file, config_params):
                 return True
             return False
 
-        def write_extra_record_data(self, writer: SRUXMLStreamWriter) -> None:
-            pass
-
-        def write_extra_response_data(self, writer: SRUXMLStreamWriter) -> None:
-            pass
-
         def write_record(self, writer: SRUXMLStreamWriter) -> None:
             writer.characters("test1")
 

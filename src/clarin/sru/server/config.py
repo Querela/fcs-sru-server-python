@@ -368,38 +368,38 @@ class SRUServerConfig:
         return None
 
     @staticmethod
-    def parse(
-        params: Dict[str, str], config_file: Union[io.BytesIO, os.PathLike, str]
+    def fromparams(
+        params: Dict[str, str],
+        database_info: DatabaseInfo,
+        index_info: Optional[IndexInfo] = None,
+        schema_info: Optional[List[SchemaInfo]] = None,
     ) -> "SRUServerConfig":
-        """Parse a SRU server XML configuration file and create an
-        configuration object from it.
+        """Creates an SRU configuration object with default values
+        and overrides from **params**.
 
         Args:
             params: additional settings
-            config_file: an ``URL`` pointing to the XML configuration
-                file
+            database_info: optinal `DatabaseInfo`
+            index_info: optinal `IndexInfo`
+            schema_info: optional list `SchemaInfo`
 
         Returns:
             SRUServerConfig: a initialized `SRUEndpointConfig` instance
 
         Raises:
-            `TypeError`: if **params** or **configFile** is None
+            `TypeError`: if **params** is None
             `SRUConfigException`: if an error occurred
         """
         if params is None:
             raise TypeError("params is None")
-        if config_file is None:
-            raise TypeError("config_file is None")
+
+        # NOTE: maybe some more validation? but everything could possibly be empty
+        if database_info is None:
+            database_info = DatabaseInfo()
+        if index_info is None:
+            index_info = IndexInfo()
 
         try:
-            doc = SRUServerConfig.load_config_file(config_file)
-
-            database_info = SRUServerConfig._build_DatabaseInfo(doc)
-
-            index_info = SRUServerConfig._build_IndexInfo(doc)
-
-            schema_info = SRUServerConfig._build_SchemaInfo(doc)
-
             # fetch parameters more parameters (usually passed from
             # environment)
 
@@ -587,9 +587,48 @@ class SRUServerConfig:
                 index_info=index_info,
                 schema_info=schema_info,
             )
+        except Exception as ex:
+            raise SRUConfigException("error building configuration object") from ex
 
+    @staticmethod
+    def parse(
+        params: Dict[str, str], config_file: Union[io.BytesIO, os.PathLike, str]
+    ) -> "SRUServerConfig":
+        """Parse a SRU server XML configuration file and create an
+        configuration object from it.
+
+        Args:
+            params: additional settings
+            config_file: an ``URL`` pointing to the XML configuration
+                file
+
+        Returns:
+            SRUServerConfig: a initialized `SRUEndpointConfig` instance
+
+        Raises:
+            `TypeError`: if **params** or **configFile** is None
+            `SRUConfigException`: if an error occurred
+        """
+        if params is None:
+            raise TypeError("params is None")
+        if config_file is None:
+            raise TypeError("config_file is None")
+
+        try:
+            doc = SRUServerConfig.load_config_file(config_file)
+
+            database_info = SRUServerConfig._build_DatabaseInfo(doc)
+            index_info = SRUServerConfig._build_IndexInfo(doc)
+            schema_info = SRUServerConfig._build_SchemaInfo(doc)
         except Exception as ex:
             raise SRUConfigException("error reading configuration file") from ex
+
+        return SRUServerConfig.fromparams(
+            params,
+            database_info=database_info,
+            index_info=index_info,
+            schema_info=schema_info,
+        )
 
     @staticmethod
     def load_config_file(

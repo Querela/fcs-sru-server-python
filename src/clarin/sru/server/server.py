@@ -438,7 +438,7 @@ class SRUServer:
             # extraResponseData
             if result:
                 if result.has_extra_response_data:
-                    with out.withElement("extraResponseData", ns.response_NS):
+                    with out.element("extraResponseData", ns.response_NS):
                         result.write_extra_response_data(out)
 
             self._end_response_with_request(out, ns, request)
@@ -491,25 +491,25 @@ class SRUServer:
                             out.startElementNS((ns.scan_NS, "terms"))
                         wrote_terms = True
 
-                    with out.withElement("term", ns.scan_NS):
-                        with out.withElement("value", ns.scan_NS):
+                    with out.element("term", ns.scan_NS):
+                        with out.element("value", ns.scan_NS):
                             out.characters(result.get_value())
 
                         if result.get_number_of_records() > -1:
-                            with out.withElement("numberOfRecords", ns.scan_NS):
+                            with out.element("numberOfRecords", ns.scan_NS):
                                 out.characters(str(result.get_number_of_records()))
 
                         if result.get_display_term():
-                            with out.withElement("displayTerm", ns.scan_NS):
+                            with out.element("displayTerm", ns.scan_NS):
                                 out.characters(str(result.get_display_term()))
 
                         if result.get_WhereInList():
-                            with out.withElement("whereInList", ns.scan_NS):
+                            with out.element("whereInList", ns.scan_NS):
                                 # NOTE: here it is not None
                                 out.characters(result.get_WhereInList().lower())  # type: ignore
 
                         if result.has_extra_term_data():
-                            with out.withElement("extraTermData", ns.scan_NS):
+                            with out.element("extraTermData", ns.scan_NS):
                                 result.write_extra_term_data(out)
 
                 if wrote_terms:
@@ -532,7 +532,7 @@ class SRUServer:
 
             # extraResponseData
             if result.has_extra_response_data:
-                with out.withElement("extraResponseData", ns.response_NS):
+                with out.element("extraResponseData", ns.response_NS):
                     result.write_extra_response_data(out)
 
             self._end_response_with_request(out, ns, request)
@@ -586,12 +586,12 @@ class SRUServer:
             self._begin_response_with_request(out, ns, request)
 
             # numberOfRecords
-            with out.withElement("numberOfRecords", ns.response_NS):
+            with out.element("numberOfRecords", ns.response_NS):
                 out.characters(str(result.get_total_record_count()))
 
             # resultSetId
             if result.get_resultSet_id():
-                with out.withElement("resultSetId", ns.response_NS):
+                with out.element("resultSetId", ns.response_NS):
                     out.characters(result.get_resultSet_id())
 
             # resultSetIdleTime (SRU 1.1 and SRU 1.2)
@@ -599,7 +599,7 @@ class SRUServer:
                 not request.is_version(SRUVersion.VERSION_2_0)
                 and result.get_resultSet_TTL() >= 0
             ):
-                with out.withElement("resultSetIdleTime", ns.response_NS):
+                with out.element("resultSetIdleTime", ns.response_NS):
                     out.characters(str(result.get_resultSet_TTL()))
 
             position = (
@@ -634,7 +634,7 @@ class SRUServer:
                         # diagnostic. In case of the latter, we need to output
                         # the appropriate record schema ...
                         diagnostic = result.get_surrogate_diagnostic()
-                        with out.withElement("recordSchema", ns.response_NS):
+                        with out.element("recordSchema", ns.response_NS):
                             if not diagnostic:
                                 out.characters(result.get_record_schema_identifier())
                             else:
@@ -657,9 +657,7 @@ class SRUServer:
                         self._write_record_xml_escaping(out, ns, request)
 
                         # Output either record data or surrogate diagnostic ...
-                        with out.withElement(
-                            "recordData", ns.response_NS
-                        ), out.withRecord():
+                        with out.element("recordData", ns.response_NS), out.record():
                             if diagnostic is None:
                                 result.write_record(out)
                             else:
@@ -672,16 +670,14 @@ class SRUServer:
                         ):
                             identifier = result.get_record_identifier()
                             if identifier:
-                                with out.withElement(
-                                    "recordIdentifier", ns.response_NS
-                                ):
+                                with out.element("recordIdentifier", ns.response_NS):
                                     out.characters(identifier)
 
-                        with out.withElement("recordPosition", ns.response_NS):
+                        with out.element("recordPosition", ns.response_NS):
                             out.characters(str(position))
 
-                        if result.has_extra_record_data():
-                            with out.withElement("extraRecordData", ns.response_NS):
+                        if result.has_extra_record_data:
+                            with out.element("extraRecordData", ns.response_NS):
                                 result.write_extra_record_data(out)
 
                         out.endElementNS((ns.response_NS, "record"))
@@ -697,7 +693,7 @@ class SRUServer:
 
             # nextRecordPosition
             if position <= result.get_total_record_count():
-                with out.withElement("nextRecordPosition", ns.response_NS):
+                with out.element("nextRecordPosition", ns.response_NS):
                     out.characters(str(position))
 
             # echoedSearchRetrieveRequest
@@ -712,20 +708,20 @@ class SRUServer:
 
             # extraResponseData
             if result.has_extra_response_data:
-                with out.withElement("extraResponseData", ns.response_NS):
+                with out.element("extraResponseData", ns.response_NS):
                     result.write_extra_response_data(out)
 
             # SRU 2.0 stuff ...
             if request.is_version(SRUVersion.VERSION_2_0):
                 # resultSetTTL
                 if result.get_resultSet_TTL() >= 0:
-                    with out.withElement("resultSetTTL", ns.response_NS):
+                    with out.element("resultSetTTL", ns.response_NS):
                         out.characters(str(result.get_resultSet_TTL()))
 
                 # resultCountPrecision
                 precision = result.get_result_count_precision()
                 if precision:
-                    with out.withElement("resultCountPrecision", ns.response_NS):
+                    with out.element("resultCountPrecision", ns.response_NS):
                         prefix = "info:srw/vocabulary/resultCountPrecision/1/"
                         out.characters(f"{prefix}{precision.lower()}")
 
@@ -840,7 +836,7 @@ class SRUServer:
             self._write_diagnostics(out, ns, ns.scan_NS, diagnostics)
         elif operation == SRUOperation.SEARCH_RETRIEVE:
             # 'searchRetrieve' needs numberOfRecords ..
-            with out.withElement("numberOfRecords", ns.response_NS):
+            with out.element("numberOfRecords", ns.response_NS):
                 out.characters("0")
             self._write_diagnostics(out, ns, ns.response_NS, diagnostics)
 
@@ -857,7 +853,7 @@ class SRUServer:
             return
 
         out.startPrefixMapping(ns.diagnostic_prefix, ns.diagnostic_NS)
-        with out.withElement("diagnostics", envelope_NS):
+        with out.element("diagnostics", envelope_NS):
             for diagnostic in diagnostics:
                 self._write_diagnostic(out, ns, diagnostic, False)
 
@@ -870,14 +866,14 @@ class SRUServer:
     ):
         if write_NS_decl:
             out.startPrefixMapping(ns.diagnostic_prefix, ns.diagnostic_NS)
-        with out.withElement("diagnostic", ns.diagnostic_NS):
-            with out.withElement("uri", ns.diagnostic_NS):
+        with out.element("diagnostic", ns.diagnostic_NS):
+            with out.element("uri", ns.diagnostic_NS):
                 out.characters(diagnostic.uri)
             if diagnostic.details:
-                with out.withElement("details", ns.diagnostic_NS):
+                with out.element("details", ns.diagnostic_NS):
                     out.characters(diagnostic.details)
             if diagnostic.message:
-                with out.withElement("message", ns.diagnostic_NS):
+                with out.element("message", ns.diagnostic_NS):
                     out.characters(diagnostic.message)
 
     # ----------------------------------------------------
@@ -889,7 +885,7 @@ class SRUServer:
             if not info:
                 return
 
-            with out.withElement("databaseInfo", ns.explain_NS):
+            with out.element("databaseInfo", ns.explain_NS):
                 self._write_LocalizedString(out, ns, "title", info.title)
                 self._write_LocalizedString(out, ns, "description", info.description)
 
@@ -908,7 +904,7 @@ class SRUServer:
             if not info:
                 return
 
-            with out.withElement("indexInfo", ns.explain_NS):
+            with out.element("indexInfo", ns.explain_NS):
                 _write_IndexInfo_Sets(info.sets)
                 _write_IndexInfo_Indexes(info.indexes)
 
@@ -917,7 +913,7 @@ class SRUServer:
                 return
 
             for set in sets:
-                with out.withElement(
+                with out.element(
                     "set",
                     ns.explain_NS,
                     attrs={"identifier": set.identifier, "name": set.name},
@@ -929,7 +925,7 @@ class SRUServer:
                 return
 
             for index in indexes:
-                with out.withElement(
+                with out.element(
                     "index",
                     ns.explain_NS,
                     attrs={
@@ -950,8 +946,8 @@ class SRUServer:
                 attrs: Dict[str, str] = dict()
                 if map.primary:
                     attrs.update(primary="true")
-                with out.withElement("map", ns.explain_NS, attrs=attrs):
-                    with out.withElement(
+                with out.element("map", ns.explain_NS, attrs=attrs):
+                    with out.element(
                         "name",
                         ns.explain_NS,
                         attrs={"set": map.set},
@@ -962,7 +958,7 @@ class SRUServer:
             if not infos:
                 return
 
-            with out.withElement("schemaInfo", ns.explain_NS):
+            with out.element("schemaInfo", ns.explain_NS):
                 for schema in infos:
                     attrs = {
                         "identifier": schema.identifier,
@@ -975,13 +971,13 @@ class SRUServer:
                     if not schema.retrieve:
                         attrs.update({"retrieve": "false"})
 
-                    with out.withElement("schema", ns.explain_NS, attrs=attrs):
+                    with out.element("schema", ns.explain_NS, attrs=attrs):
                         self._write_LocalizedString(out, ns, "title", schema.title)
 
         # ----------------------------
 
-        with out.withElement("record", ns.response_NS):
-            with out.withElement("recordSchema", ns.response_NS):
+        with out.element("record", ns.response_NS):
+            with out.element("recordSchema", ns.response_NS):
                 out.characters(ns.explain_NS)
 
             # recordPacking (SRU 2.0)
@@ -996,12 +992,12 @@ class SRUServer:
             # recordXMLEscaping (SRU 2.0) or recordPacking (SRU 1.1 and 1.2)
             self._write_record_xml_escaping(out, ns, request)
 
-            with out.withElement("recordData", ns.response_NS), out.withRecord():
+            with out.element("recordData", ns.response_NS), out.record():
                 # explain ...
                 out.startPrefixMapping(ns.explain_prefix, ns.explain_NS)
-                with out.withElement("explain", ns.explain_NS):
+                with out.element("explain", ns.explain_NS):
                     # explain/serverInfo
-                    with out.withElement(
+                    with out.element(
                         "serverInfo",
                         ns.explain_NS,
                         attrs={
@@ -1010,11 +1006,11 @@ class SRUServer:
                             "transport": self.config.transport,
                         },
                     ):
-                        with out.withElement("host", ns.explain_NS):
+                        with out.element("host", ns.explain_NS):
                             out.characters(self.config.host)
-                        with out.withElement("port", ns.explain_NS):
+                        with out.element("port", ns.explain_NS):
                             out.characters(str(self.config.port))
-                        with out.withElement("database", ns.explain_NS):
+                        with out.element("database", ns.explain_NS):
                             out.characters(self.config.database)
 
                     # explain/databaseInfo
@@ -1025,15 +1021,15 @@ class SRUServer:
                     _write_SchemaInfos(self.config.schema_info)
 
                     # explain/configInfo
-                    with out.withElement("configInfo", ns.explain_NS):
+                    with out.element("configInfo", ns.explain_NS):
                         # numberOfRecords (default)
-                        with out.withElement(
+                        with out.element(
                             "default", ns.explain_NS, attrs={"type": "numberOfRecords"}
                         ):
                             out.characters(str(self.config.number_of_records))
 
                         # maximumRecords (setting)
-                        with out.withElement(
+                        with out.element(
                             "setting", ns.explain_NS, attrs={"type": "maximumRecords"}
                         ):
                             out.characters(str(self.config.maximum_records))
@@ -1042,7 +1038,7 @@ class SRUServer:
         self, out: SRUXMLStreamWriter, ns: SRUNamespaces, request: SRURequestImpl
     ):
         # echoedSearchRetrieveRequest ?
-        with out.withElement("echoedExplainRequest", ns.response_NS):
+        with out.element("echoedExplainRequest", ns.response_NS):
             # echoedExplainRequest/version
             if request.get_version_raw() is not None:
                 # NOTE: version is not None
@@ -1054,7 +1050,7 @@ class SRUServer:
 
             # echoedExplainRequest/stylesheet
             if request.stylesheet:
-                with out.withElement("stylesheet", ns.response_NS):
+                with out.element("stylesheet", ns.response_NS):
                     out.characters(request.get_stylesheet())
 
     def _write_echoed_scan_request(
@@ -1065,35 +1061,35 @@ class SRUServer:
         query: Optional[cql.CQLQuery],
     ):
         # echoedScanRequest
-        with out.withElement("echoedScanRequest", ns.response_NS):
+        with out.element("echoedScanRequest", ns.response_NS):
             # echoedScanRequest/version
             if request.get_version_raw() is not None:
                 # NOTE: version is not None
                 self._write_version(out, ns.response_NS, request.get_version_raw())  # type: ignore
 
             # echoedScanRequest/scanClause
-            with out.withElement("scanClause", ns.response_NS):
+            with out.element("scanClause", ns.response_NS):
                 out.characters(request.get_scan_clause_raw())
 
             # echoedScanRequest/xScanClause
             out.startPrefixMapping(None, ns.XCQL_NS)
-            with out.withElement("xScanClause", ns.response_NS):
+            with out.element("xScanClause", ns.response_NS):
                 # TODO: can this be None? it should not, need to test
                 out.writeXCQL(query, False)  # type: ignore
 
             # echoedScanRequest/responsePosition
             if request.get_response_position() != -1:
-                with out.withElement("responsePosition", ns.response_NS):
+                with out.element("responsePosition", ns.response_NS):
                     out.characters(str(request.get_response_position()))
 
             # echoedScanRequest/maximumTerms
             if request.get_maximum_terms() != -1:
-                with out.withElement("maximumTerms", ns.response_NS):
+                with out.element("maximumTerms", ns.response_NS):
                     out.characters(str(request.get_maximum_terms()))
 
             # echoedScanRequest/stylesheet
             if request.get_stylesheet():
-                with out.withElement("stylesheet", ns.response_NS):
+                with out.element("stylesheet", ns.response_NS):
                     out.characters(request.get_stylesheet())
 
     def _write_echoed_searchRetrieve_request(
@@ -1104,7 +1100,7 @@ class SRUServer:
         query: SRUQuery[Any],
     ):
         # echoedSearchRetrieveRequest
-        with out.withElement("echoedSearchRetrieveRequest", ns.response_NS):
+        with out.element("echoedSearchRetrieveRequest", ns.response_NS):
             # echoedSearchRetrieveRequest/version
             if request.get_version_raw() is not None:
                 # NOTE: version is not None
@@ -1113,22 +1109,22 @@ class SRUServer:
             # XXX: unclear, if <query> should only be echoed if queryType is CQL!?
             if SRUQueryType.CQL == query.query_type:
                 # echoedSearchRetrieveRequest/query
-                with out.withElement("query", ns.response_NS):
+                with out.element("query", ns.response_NS):
                     out.characters(query.raw_query)
 
                 # echoedSearchRetrieveRequest/xQuery
                 out.startPrefixMapping(None, ns.XCQL_NS)
-                with out.withElement("xQuery", ns.response_NS):
+                with out.element("xQuery", ns.response_NS):
                     out.writeXCQL(query.parsed_query, True)
 
             # echoedSearchRetrieveRequest/startRecord
             if request.get_start_record() > 0:
-                with out.withElement("startRecord", ns.response_NS):
+                with out.element("startRecord", ns.response_NS):
                     out.characters(str(request.get_start_record()))
 
             # echoedSearchRetrieveRequest/maximumRecords
             if request.get_maximum_records_raw() > 0:
-                with out.withElement("maximumRecords", ns.response_NS):
+                with out.element("maximumRecords", ns.response_NS):
                     out.characters(str(request.get_maximum_records_raw()))
 
             # (SRU 2.0) echoedSearchRetrieveRequest/recordPacking
@@ -1136,7 +1132,7 @@ class SRUServer:
                 request.is_version(SRUVersion.VERSION_2_0)
                 and request.get_record_packing_raw()
             ):
-                with out.withElement("recordPacking", ns.response_NS):
+                with out.element("recordPacking", ns.response_NS):
                     out.characters(request.get_record_packing_raw())
 
             # echoedSearchRetrieveRequest/recordXmlEscaping / recordPacking
@@ -1146,12 +1142,12 @@ class SRUServer:
                     if request.is_version(SRUVersion.VERSION_2_0)
                     else "recordPacking"
                 )
-                with out.withElement(tag, ns.response_NS):
+                with out.element(tag, ns.response_NS):
                     out.characters(request.get_record_xml_escaping_raw())
 
             # echoedSearchRetrieveRequest/recordSchema
             if request.get_record_schema_identifier_raw():
-                with out.withElement("recordSchema", ns.response_NS):
+                with out.element("recordSchema", ns.response_NS):
                     out.characters(request.get_record_schema_identifier_raw())
 
             # echoedSearchRetrieveRequest/recordXPath (1.1)
@@ -1159,29 +1155,29 @@ class SRUServer:
                 request.is_version(SRUVersion.VERSION_1_1)
                 and request.get_record_xpath()
             ):
-                with out.withElement("recordXPath", ns.response_NS):
+                with out.element("recordXPath", ns.response_NS):
                     out.characters(request.get_record_xpath())
 
             # echoedSearchRetrieveRequest/resultSetTTL
             if request.get_resultSet_TTL() > 0:
-                with out.withElement("resultSetTTL", ns.response_NS):
+                with out.element("resultSetTTL", ns.response_NS):
                     out.characters(str(request.get_resultSet_TTL()))
 
             # echoedSearchRetrieveRequest/sortKeys
             if request.is_version(SRUVersion.VERSION_1_1) and request.get_sortKeys():
-                with out.withElement("sortKeys", ns.response_NS):
+                with out.element("sortKeys", ns.response_NS):
                     out.characters(request.get_sortKeys())
 
             # echoedSearchRetrieveRequest/xsortKeys
 
             # echoedSearchRetrieveRequest/stylesheet
             if request.get_stylesheet():
-                with out.withElement("stylesheet", ns.response_NS):
+                with out.element("stylesheet", ns.response_NS):
                     out.characters(request.get_stylesheet())
 
             # echoedSearchRetrieveRequest/renderedBy
             if request.is_version(SRUVersion.VERSION_2_0) and request.get_renderBy():
-                with out.withElement("renderedBy", ns.response_NS):
+                with out.element("renderedBy", ns.response_NS):
                     out.characters(request.get_renderBy().lower())  # type: ignore
 
             # echoedSearchRetrieveRequest/extraRequestParameter
@@ -1193,7 +1189,7 @@ class SRUServer:
                 request.is_version(SRUVersion.VERSION_2_0)
                 and request.get_http_accept_raw()
             ):
-                with out.withElement("httpAccept", ns.response_NS):
+                with out.element("httpAccept", ns.response_NS):
                     out.characters(request.get_http_accept_raw())
 
             # echoedSearchRetrieveRequest/responseType
@@ -1201,7 +1197,7 @@ class SRUServer:
                 request.is_version(SRUVersion.VERSION_2_0)
                 and request.get_response_type()
             ):
-                with out.withElement("responseType", ns.response_NS):
+                with out.element("responseType", ns.response_NS):
                     out.characters(request.get_response_type())
 
     # ----------------------------------------------------
@@ -1209,7 +1205,7 @@ class SRUServer:
     def _write_version(
         self, out: SRUXMLStreamWriter, envelope_NS: str, version: SRUVersion
     ):
-        with out.withElement("version", envelope_NS):
+        with out.element("version", envelope_NS):
             out.characters(version.version_string)
 
     def _write_record_xml_escaping(
@@ -1220,7 +1216,7 @@ class SRUServer:
             if request.is_version(SRUVersion.VERSION_2_0)
             else "recordPacking"
         )
-        with out.withElement(tag, ns.response_NS):
+        with out.element(tag, ns.response_NS):
             out.characters(request.get_record_xml_escaping().lower())
 
     def _write_record_packing(
@@ -1229,7 +1225,7 @@ class SRUServer:
         ns: SRUNamespaces,
         record_packing: SRURecordPacking,
     ):
-        with out.withElement("recordPacking", ns.response_NS):
+        with out.element("recordPacking", ns.response_NS):
             out.characters(record_packing.lower())
 
     def _write_LocalizedString(
@@ -1247,7 +1243,7 @@ class SRUServer:
                 attrs.update(lang=item.lang)
             if item.primary:
                 attrs.update(primary="true")
-            with out.withElement(name, ns.explain_NS, attrs=attrs):
+            with out.element(name, ns.explain_NS, attrs=attrs):
                 out.characters(item.value)
 
     # ----------------------------------------------------
