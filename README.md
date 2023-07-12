@@ -7,6 +7,7 @@ FCS SRU Server
 [![](https://img.shields.io/badge/linting-flake8-yellowgreen)](https://github.com/PyCQA/flake8)  
 [![](https://img.shields.io/badge/%20doc%20style-sphinx-0a507a.svg)](https://www.sphinx-doc.org/en/master/usage/index.html)
 [![](https://img.shields.io/badge/%20doc%20style-google-3666d6.svg)](https://google.github.io/styleguide/pyguide.html#s3.8-comments-and-docstrings)  
+[![fcs-sru-server @ PyPI](https://img.shields.io/pypi/v/fcs-sru-server)](https://pypi.python.org/pypi/fcs-sru-server)
 [![](https://img.shields.io/github/last-commit/Querela/fcs-sru-server-python)](https://github.com/Querela/fcs-sru-server-python/commits/main)
 [![Documentation Status](https://readthedocs.org/projects/fcs-sru-server-python/badge/?version=latest)](https://fcs-sru-server-python.readthedocs.io/en/latest/?badge=latest)
 <!-- END: BADGES -->
