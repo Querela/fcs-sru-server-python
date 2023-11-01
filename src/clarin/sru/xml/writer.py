@@ -249,7 +249,7 @@ class SRUXMLStreamWriter(ContentHandler):
 
     @contextmanager
     def prefix(self, prefix, uri):
-        self.startPrefixMapping(self, prefix, uri)
+        self.startPrefixMapping(prefix, uri)
         yield
         self.endPrefixMapping(prefix)
 
@@ -392,7 +392,7 @@ class XMLStreamWriterHelper(ContentHandler):
 
     @contextmanager
     def prefix(self, prefix, uri):
-        self.startPrefixMapping(self, prefix, uri)
+        self.startPrefixMapping(prefix, uri)
         yield
         self.endPrefixMapping(prefix)
 
